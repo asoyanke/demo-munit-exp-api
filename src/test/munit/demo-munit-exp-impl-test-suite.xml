@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+
+	<munit:config name="demo-munit-exp-impl-test-suite.xml" />
+
+	<munit:test name="demo-munit-exp-impl-flowTest" doc:id="9c95b9b3-b0b4-420f-b68a-a6957e485c20">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Request" doc:id="9d6fc772-ede9-406e-ade8-511b8210f7b5" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="demo-munit-exp-api-httpRequestConfig" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[{'msg':'success'}]" />
+					<munit-tools:attributes value="#[{'statusCode':200}]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<set-payload value="#[{}]" doc:name="Set Payload" doc:id="10dcda99-4f43-4d8d-97bc-05436ba695d4" mimeType="application/json"/>
+			<flow-ref doc:name="Flow-ref to demo-munit-exp-impl-flow" doc:id="b2184e9d-72f6-46c0-8023-c9e255ab8294" name="demo-munit-exp-impl-flow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+
+	<munit:config name="demo-munit-exp-api-test-suite.xml" />
+	
+	<http:request-config name="HTTP_Request_configuratio_munit"
+		doc:name="HTTP Request configuration"
+		doc:id="e4c967fe-354d-4031-83eb-9e6657c760a7">
+		<http:request-connection host="localhost" port="${https.port}" />
+	</http:request-config>
+	
+	<munit:test name="apikit-test-console" doc:id="755ea389-052c-4a54-bbc7-3a630461955e" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-console" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request" doc:id="e88b24f7-21ca-47da-8589-750f430e8ebf" config-ref="HTTP_Request_configuratio_munit" path="/console/"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-console-NOT_FOUND" doc:id="de0509fb-53c7-4b8d-95f7-31476b82dc3c" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-console" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when apikit" doc:id="0ca82f17-4ef5-4a12-a5f4-ad04afd21d9b" processor="apikit:console">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="demo-munit-exp-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>	
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request" doc:id="7ca65d18-a221-49c6-836c-552132fab361" config-ref="HTTP_Request_configuratio_munit" path="/console/">
+				<http:response-validator >
+					<http:success-status-code-validator values="404" />
+				</http:response-validator>
+			</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(404)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main" doc:id="cdfed84a-edf2-45ae-8975-cfd7e614856c">
+
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source
+				value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source
+				value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution>
+			<http:request method="POST" doc:name="Request" doc:id="0c9293ca-6880-459e-ae5f-b7d570ba89dc" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body ><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+			</http:request>
+	</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-BAD_REQUEST" doc:id="12061b2e-83e9-4bf0-aa1c-fb5a540e3787" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="POST" doc:name="Request" doc:id="5d3aa24f-f2f4-47f7-9de3-f5eb88265e4d" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body><![CDATA[#[output application/java
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="400" />
+				</http:response-validator>
+</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-METHOD_NOT_ALLOWED" doc:id="c89e3a3b-59e4-4647-acd8-4185806fb55d" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="PUT" doc:name="Request" doc:id="4d77d38c-2434-4be7-b1f5-ef6bf4815d62" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="405" />
+				</http:response-validator>
+			
+
+</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(405)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-NOT_ACCEPTABLE" doc:id="3e8de34c-62d5-4191-800b-78f082ae2715" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="POST" doc:name="Request" doc:id="0aefa213-6440-4f06-9fad-880965172663" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Accept" : "application/xml",
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="406" />
+				</http:response-validator>
+</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(406)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-NOT_FOUND" doc:id="5ceb0ee7-46a4-4881-b971-2ddd7def5624">
+
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source
+				value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source
+				value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution>
+			<http:request method="POST" doc:name="Request" doc:id="9ffc97f5-db01-4d44-9cd2-ae2ca8f71db1" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting-nf">
+				<http:body ><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="404" />
+				</http:response-validator>
+</http:request>
+	</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(404)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-UNSUPPORTED_MEDIA_TYPE" doc:id="05d28d39-1a26-41b3-aa7e-5e2098804c11" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="demo-munit-exp-api-main" />
+			<munit:enable-flow-source value="post:\reporting:application\json:demo-munit-exp-api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="POST" doc:name="Request" doc:id="09fd8473-ab77-4b90-97b1-7068a3d1acff" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Accept" : "application/json",
+	"Content-Type" : "application/xml",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="415" />
+				</http:response-validator>
+</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(415)]"/>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test name="apikit-test-main-NOT_IMPLEMENTED" doc:id="4911f2fc-6840-4087-8ba9-b6350dbe0144">
+
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="demo-munit-exp-api-main" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when apikit" doc:id="c6790f97-feb8-49d6-b423-ac37603a8dca" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="demo-munit-exp-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="APIKIT:NOT_IMPLEMENTED" />
+				</munit-tools:then-return>	
+			</munit-tools:mock-when>
+		</munit:behavior>		
+		<munit:execution>
+			<http:request method="POST" doc:name="Request" doc:id="0388a61c-929b-4c47-897f-9baeecdde368" config-ref="HTTP_Request_configuratio_munit" path="/api/reporting">
+				<http:body><![CDATA[#[output application/json
+---
+{
+	"msg" :""
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json",
+	"client_id" : "client_id",
+	"client_secret" : "client_secret"
+}]]]></http:headers>
+				<http:response-validator >
+					<http:success-status-code-validator values="501" />
+				</http:response-validator>
+</http:request>
+	</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(501)]"/>
+		</munit:validation>	
+	</munit:test>	
+</mule>	

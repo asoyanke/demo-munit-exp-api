@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="demo-munit-exp-impl-flow" doc:id="c9a404ed-f281-4ce3-8099-0e0c223e6857" >
+		<http:request method="POST" doc:name="Request" doc:id="68909472-fa89-4966-9b65-061f1bd5f0ef" config-ref="demo-munit-exp-api-httpRequestConfig" path="${outbound.api.path}"/>
+	</flow>
+</mule>

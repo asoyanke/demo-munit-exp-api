@@ -1,0 +1,24 @@
+#%RAML 1.0
+title: Digital Reporting Experience API
+version: v1
+baseUri: https://localhost:8082/api/{version}
+mediaType:  application/json
+
+protocols:
+  - HTTPS
+
+securitySchemes:
+ clientIDrequired: !include exchange_modules/b9d74634-2389-4c93-b9f0-9c4f0d01a96d/clientidenforcementraml/1.0.0/clientidenforcement.raml
+
+securedBy:
+  - clientIDrequired
+
+/reporting:
+  post:
+    body:
+      application/json:
+        type: object
+    responses:
+      200:
+        body:
+          application/json:
